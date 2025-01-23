@@ -1,10 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SocialiteAuthController;
+
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/auth/redirect', [SocialiteAuthController::Class, 'redirect'])->name('auth.redirect');
+Route::get('/auth/callback', [SocialiteAuthController::Class, 'callback'])->name('auth.callback');
 
 Route::middleware([
     'auth:sanctum',
@@ -15,3 +20,5 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+
+
