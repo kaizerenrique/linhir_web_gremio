@@ -78,4 +78,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuthProvider::class);
     }
+
+    /**
+     * Personajes del juego
+     */
+    public function personajes()
+    {
+        return $this->hasMany(Personaje::class);
+    }
 }
