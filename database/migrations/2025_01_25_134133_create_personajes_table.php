@@ -21,7 +21,7 @@ return new class extends Migration
             
             $table->string('Name');
             $table->string('Id_albion');
-            $table->string('GuildId');
+            $table->string('GuildId')->nullable();
             $table->boolean('miembro')->nullable();
             $table->timestamps();
         });

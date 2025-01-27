@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Personaje extends Model
 {
     protected $fillable = [
+        'user_id',
         'Name',
         'Id_albion',
         'GuildId',

@@ -16,6 +16,19 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                'malachite': '#49df62',
+                'deep_fir' : '#052e0e',
+
+                'pink_salmon' : '#ff9aad',
+                'maroon_oak' : '#4c0311',
+
+                'turquoise': '#2bd6be',
+                'deep_teal' : '#042f2d',
+                
+                'lavender_pink' : '#eeb3d6',
+                'toledo' : '#461129',
+            },
         },
     },
 
