@@ -4,6 +4,8 @@ namespace App\Traits;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Personaje;
 use Carbon\Carbon;
 
@@ -20,24 +22,42 @@ trait Albion
 
     public function buscarpersonajepornombre($text)
 	{
-        try {
-            $url = 'https://gameinfo.albiononline.com/api/gameinfo/search?q=';
-			$response = Http::get($url.$text);
+		// Validar que el texto no esté vacío
+		if (empty($text)) {
+			return false;
+		}
 
-			$respuesta = $response->getBody()->getContents();// accedemos a el contenido			
+		// Clave única para almacenar en caché
+		$cacheKey = 'player_search_' . md5($text);
 
-            $respuesta = json_decode($respuesta); //convertimos en json	
+		// Intentar obtener los resultados desde la caché
+		if (Cache::has($cacheKey)) {
+			return Cache::get($cacheKey);
+		}
 
-			if (!empty($respuesta->players)) {
-				return $respuesta->players;
-			} else {
-				return false;
-			}	
+		try {
+			$url = 'https://gameinfo.albiononline.com/api/gameinfo/search?q=';
+			$response = Http::timeout(10)->get($url . urlencode($text)); // Codificar el texto para la URL
 
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            //report($e);	 
-	        return false;
-        }
+			// Verificar si la respuesta fue exitosa
+			if ($response->successful()) {
+				$respuesta = json_decode($response->getBody()->getContents());
+
+				// Verificar si hay resultados
+				if (!empty($respuesta->players)) {
+					// Almacenar en caché por 5 minutos (300 segundos)
+					Cache::put($cacheKey, $respuesta->players, 300);
+					return $respuesta->players;
+				}
+			}
+
+			// Si no hay resultados o la respuesta falló
+			return false;
+
+		} catch (\Illuminate\Http\Client\ConnectionException $e) {
+			// Manejar excepciones de conexión
+			return false;
+		}
 	}
 
     /**
@@ -127,4 +147,77 @@ trait Albion
 	        return false;
         }
 	} 
+
+	/**
+	* Esta función realiza una consulta a la Pagina del gameinfo.albiononline 
+    * para buscar información de los integrantes de linhir
+	* 
+	* @param string   $text	cadena de texto que contiene el ID
+	*
+	* @return Retorna un array.
+	*/	
+
+    public function integrantesdelgremiolinhir()
+	{
+		$linhir_id = config('app.linhir_gremio_id');
+        try {
+            $url = 'https://gameinfo.albiononline.com/api/gameinfo/guilds/';
+			$response = Http::get($url.$linhir_id.'/members');
+
+			$respuesta = $response->getBody()->getContents();// accedemos a el contenido	
+
+            $integrantes = json_decode($respuesta);
+
+			// Obtener los IDs de los miembros actuales del gremio
+			$idsIntegrantesActuales = collect($integrantes)->pluck('Id')->toArray();
+
+			// Obtener todos los personajes registrados en la base de datos que pertenecen al gremio
+			$personajesRegistrados = Personaje::where('GuildId', $linhir_id)->get();
+
+			// Marcar como "no miembro" y actualizar el GuildId de los personajes que ya no están en el gremio
+			foreach ($personajesRegistrados as $personaje) {
+				if (!in_array($personaje->Id_albion, $idsIntegrantesActuales)) {
+					// Buscar información actual del personaje en la API
+					$urlPersonaje = 'https://gameinfo.albiononline.com/api/gameinfo/players/' . $personaje->Id_albion;
+					$responsePersonaje = Http::get($urlPersonaje);
+	
+					if ($responsePersonaje->successful()) {
+						$infoPersonaje = json_decode($responsePersonaje->getBody()->getContents());
+	
+						// Actualizar el GuildId con el nuevo gremio o null si no tiene
+						$personaje->update([
+							'GuildId' => $infoPersonaje->GuildId ?? null,
+							'miembro' => false,
+						]);
+					} else {
+						// Si no se puede obtener la información, marcar como "no miembro" y GuildId como null
+						$personaje->update([
+							'GuildId' => null,
+							'miembro' => false,
+						]);
+					}
+				}
+			}
+	
+			// Registrar nuevos miembros o actualizar los existentes
+			foreach ($integrantes as $integrante) {
+				Personaje::updateOrCreate(
+					['Id_albion' => $integrante->Id],
+					[
+						'Name' => $integrante->Name,
+						'GuildId' => $integrante->GuildId,
+						'miembro' => true,
+					]
+				);
+			}
+	
+			return $integrantes;
+			
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            //report($e);	 
+	        return false;
+        }
+	}
+	
 }

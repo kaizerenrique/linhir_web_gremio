@@ -22,8 +22,20 @@ class Controldepersonaje extends Component
         'buscar' => ['except' => '']
     ];
 
+    protected function rules()
+    {
+        if ($modalBuscarPersonaje = true) {
+            return [
+                'buscar' => 'required|string|min:4',                
+            ];
+        }        
+    }
+
     public function render()
     {
+        //$prueba = $this->integrantesdelgremiolinhir();
+        
+        //dd($prueba);
         $linhir_id = config('app.linhir_gremio_id');
 
         $resultados = $this->buscarpersonajepornombre($this->buscar);
@@ -81,39 +93,50 @@ class Controldepersonaje extends Component
      */
     public function agregarpersonaje($identificador)
     {
-        $this->reset(['buscar']); 
+        $this->reset(['buscar']);
         $this->modalConfirmarPersonaje = false;
         $linhir_id = config('app.linhir_gremio_id');
         $datosdelpersonaje = $this->consultarpersonaje($identificador);
-
-        if (Personaje::where('Id_albion', $datosdelpersonaje->Id)->exists()) {
-            $this->titulo = 'El personaje ya está registrado';
-            $this->mensaje = '¡El personaje '. $datosdelpersonaje->Name .' ya está registrado !';        
-            $this->mensajeModal = true;
-            $this->redirect('/dashboard'); 
-        } else {
-
-            if ($datosdelpersonaje->GuildId == $linhir_id ) {
-                $perfiles = Personaje::Create([
-                    'user_id' => auth()->user()->id,
-                    'Name' => $datosdelpersonaje->Name,
-                    'Id_albion' => $datosdelpersonaje->Id,
-                    'GuildId' => $datosdelpersonaje->GuildId,
-                    'miembro' => true,
-                ]);
+    
+        // Verificar si el personaje ya existe en la base de datos
+        $personajeExistente = Personaje::where('Id_albion', $datosdelpersonaje->Id)->first();
+    
+        if ($personajeExistente) {
+            // Si el personaje ya tiene un usuario propietario
+            if ($personajeExistente->user_id) {
+                $this->titulo = 'El personaje ya está registrado';
+                $this->mensaje = '¡El personaje ' . $datosdelpersonaje->Name . ' ya está registrado por otro usuario!';
+                $this->mensajeModal = true;
+                $this->redirect('/dashboard');
             } else {
-                $perfiles = Personaje::Create([
+                // Si el personaje no tiene un usuario propietario, asignarlo al usuario actual
+                $personajeExistente->update([
                     'user_id' => auth()->user()->id,
-                    'Name' => $datosdelpersonaje->Name,
-                    'Id_albion' => $datosdelpersonaje->Id,
-                    'GuildId' => $datosdelpersonaje->GuildId,
-                    'miembro' => false,
+                    'miembro' => ($datosdelpersonaje->GuildId == $linhir_id), // Actualizar el estado de miembro
                 ]);
+    
+                $this->titulo = 'Personaje asignado';
+                $this->mensaje = '¡El personaje ' . $datosdelpersonaje->Name . ' ha sido asignado a tu cuenta!';
+                $this->mensajeModal = true;
+                $this->redirect('/dashboard');
             }
-            
-            $this->redirect('/dashboard'); 
+        } else {
+            // Si el personaje no existe, crearlo y asignarlo al usuario actual
+            $miembro = ($datosdelpersonaje->GuildId == $linhir_id);
+    
+            Personaje::create([
+                'user_id' => auth()->user()->id,
+                'Name' => $datosdelpersonaje->Name,
+                'Id_albion' => $datosdelpersonaje->Id,
+                'GuildId' => $datosdelpersonaje->GuildId,
+                'miembro' => $miembro,
+            ]);
+    
+            $this->titulo = 'Personaje registrado';
+            $this->mensaje = '¡El personaje ' . $datosdelpersonaje->Name . ' ha sido registrado exitosamente!';
+            $this->mensajeModal = true;
+            $this->redirect('/dashboard');
         }
-        
     }
 
     /***
