@@ -4,7 +4,7 @@
         <div class="flex items-start p-4 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
             <div class="ml-4">
                 <h2 class="font-semibold text-gray-800 dark:text-gray-200 leading-tight">Personajes Registrados</h2>
-                <p class="mt-2 text-sm dark:text-gray-200">{{ $num }}</p>
+                <p class="mt-2 text-sm dark:text-gray-200">{{ $num}}</p>
             </div>
         </div>
         <div class="flex items-start p-4 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">

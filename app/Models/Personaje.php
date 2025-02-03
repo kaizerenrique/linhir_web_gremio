@@ -17,4 +17,14 @@ class Personaje extends Model
     public function user(){
         return $this->belongsTo(User::class);
     }
+
+    public function lifetimeStatistics()
+    {
+        return $this->hasOne(LifetimeStatistics::class, 'personaje_id');
+    }
+
+    public function gatheringStatistics()
+    {
+        return $this->hasOne(GatheringStatistics::class, 'personaje_id');
+    }
 }

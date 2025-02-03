@@ -33,9 +33,9 @@ class Controldepersonaje extends Component
 
     public function render()
     {
-        //$prueba = $this->integrantesdelgremiolinhir();
+        //$prueba = $this->datospersonaje();
         
-        //dd($prueba);
+        
         $linhir_id = config('app.linhir_gremio_id');
 
         $resultados = $this->buscarpersonajepornombre($this->buscar);
@@ -48,7 +48,7 @@ class Controldepersonaje extends Component
             
         }
         
-
+        $num = 0;
         if (empty($Id_albions)) {            
             $personajes = null;            
         } else {

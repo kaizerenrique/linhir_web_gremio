@@ -211,13 +211,80 @@ trait Albion
 				);
 			}
 	
-			return $integrantes;
+			return true;
 			
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             //report($e);	 
 	        return false;
         }
+	}
+
+	/**
+	 * Esta función realiza una consulta a la Pagina del gameinfo.albiononline
+	 * para buscar información de los personajes registrados
+	 */
+
+	public function datospersonaje()
+	{
+		$personajesRegistrados = Personaje::all();
+
+		foreach ($personajesRegistrados as $personajesRegistrado)
+		{
+			// Buscar información actual del personaje en la API
+			$urlPersonaje = 'https://gameinfo.albiononline.com/api/gameinfo/players/' . $personajesRegistrado->Id_albion;
+			$responsePersonaje = Http::get($urlPersonaje);
+
+			if ($responsePersonaje->successful())
+			{
+				$infoPersonaje = json_decode($responsePersonaje->getBody()->getContents(), true);
+
+				// Convertir la fecha al formato correcto
+				$timestamp = Carbon::parse($infoPersonaje['LifetimeStatistics']['Timestamp'])->toDateTimeString();
+				// Almacenar los datos de LifetimeStatistics
+				$lifetimeStatistics = $infoPersonaje['LifetimeStatistics'];
+				$lifetimeStats = $personajesRegistrado->lifetimeStatistics()->updateOrCreate(
+					['personaje_id' => $personajesRegistrado->id],
+					[
+						'PvE_Total' => $lifetimeStatistics['PvE']['Total'],
+						'PvE_Royal' => $lifetimeStatistics['PvE']['Royal'],
+						'PvE_Outlands' => $lifetimeStatistics['PvE']['Outlands'],
+						'PvE_Avalon' => $lifetimeStatistics['PvE']['Avalon'],
+						'PvE_Hellgate' => $lifetimeStatistics['PvE']['Hellgate'],
+						'PvE_CorruptedDungeon' => $lifetimeStatistics['PvE']['CorruptedDungeon'],
+						'PvE_Mists' => $lifetimeStatistics['PvE']['Mists'],
+						'Crafting_Total' => $lifetimeStatistics['Crafting']['Total'],
+						'Crafting_Royal' => $lifetimeStatistics['Crafting']['Royal'],
+						'Crafting_Outlands' => $lifetimeStatistics['Crafting']['Outlands'],
+						'Crafting_Avalon' => $lifetimeStatistics['Crafting']['Avalon'],
+						'CrystalLeague' => $lifetimeStatistics['CrystalLeague'],
+						'FishingFame' => $lifetimeStatistics['FishingFame'],
+						'FarmingFame' => $lifetimeStatistics['FarmingFame'],
+						'Timestamp_Conec' => $timestamp, // Usar la fecha formateada
+					]
+				);
+
+				// Almacenar los datos de GatheringStatistics
+				$gatheringStatistics = $lifetimeStatistics['Gathering'];
+				$resources = ['Fiber', 'Hide', 'Ore', 'Rock', 'Wood', 'All'];
+
+				foreach ($resources as $resource) {
+					$lifetimeStats->gatheringStatistics()->updateOrCreate(
+						[
+							'lifetime_statistics_id' => $lifetimeStats->id,
+							'resource_type' => $resource,
+						],
+						[
+							'Total' => $gatheringStatistics[$resource]['Total'],
+							'Royal' => $gatheringStatistics[$resource]['Royal'],
+							'Outlands' => $gatheringStatistics[$resource]['Outlands'],
+							'Avalon' => $gatheringStatistics[$resource]['Avalon'],
+						]
+					);
+				}
+			}
+			
+		}
 	}
 	
 }
