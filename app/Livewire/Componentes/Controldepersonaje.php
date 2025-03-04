@@ -5,11 +5,15 @@ namespace App\Livewire\Componentes;
 use Livewire\Component;
 use \App\Traits\Albion;
 use App\Models\Personaje;
+use Illuminate\Support\Facades\Auth;
+
+use \App\Traits\DiscordComan;
 
 
 class Controldepersonaje extends Component
 {
     use Albion;
+    use DiscordComan;
 
     public $modalBuscarPersonaje = false;
     public $buscar, $identificador, $nombrepersonaje;
@@ -33,15 +37,14 @@ class Controldepersonaje extends Component
 
     public function render()
     {
-        //$prueba = $this->datospersonaje();
-        
-        
         $linhir_id = config('app.linhir_gremio_id');
 
-        $resultados = $this->buscarpersonajepornombre($this->buscar);
-        //$informacion = $this->consultargremio($linhir_id);
+        $resultados = $this->buscarpersonajepornombre($this->buscar);        
 
         $perfiles = auth()->user()->personajes;  
+        
+        // el usuario esta registrado en el servidor de discord de linhir
+        $idDiscordUser = $this->checkDiscordMembership();
 
         foreach ($perfiles as $perfil){
             $Id_albions[] = $perfil->Id_albion;
@@ -62,6 +65,7 @@ class Controldepersonaje extends Component
             'resultados' => $resultados,
             'personajes' => $personajes,
             'num' => $num,
+            'idDiscordUser' => $idDiscordUser,
         ]);
     }
 
@@ -175,4 +179,7 @@ class Controldepersonaje extends Component
         $this->mensaje = '¡El personaje de nombre '. $nombre .' ha sido eliminado de nuestro registro de forma exitosa!';        
         $this->mensajeModal = true;
     }
+
+
+    
 }

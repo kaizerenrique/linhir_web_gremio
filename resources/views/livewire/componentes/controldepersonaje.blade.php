@@ -9,8 +9,14 @@
         </div>
         <div class="flex items-start p-4 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
             <div class="ml-4">
-                <h2 class="font-semibold text-gray-800 dark:text-gray-200 leading-tight">Personajes Linhir</h2>
-                <p class="mt-2 text-sm dark:text-gray-200"></p>
+                <h2 class="font-semibold text-gray-800 dark:text-gray-200 leading-tight">Registrado en el Discord de Linhir</h2>
+                <p class="mt-2 text-sm dark:text-gray-200">
+                    @if ($idDiscordUser)
+                        Registrado
+                    @else
+                        No registrado
+                    @endif
+                </p>
             </div>
         </div>
         <div class="flex items-start p-4 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
