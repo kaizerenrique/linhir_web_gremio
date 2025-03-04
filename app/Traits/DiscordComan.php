@@ -188,6 +188,9 @@ trait DiscordComan
         }
     }
 
+    /**
+     * Verifica si un el usuario está en el servidor de Discord.     
+     */
     public function checkDiscordMembership()
     {
         // Obtener el usuario autenticado
@@ -399,6 +402,57 @@ trait DiscordComan
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+
+    /**
+     * Obtiene la lista de roles del servidor de Discord.
+     *
+     * @param string $guildId
+     * @return array
+     */
+    public function getRoles()
+    {
+        try {
+            // Token del bot
+            $this->token = env('DISCORD_BOT_TOKEN');
+
+            $guildId = env('DISCORD_SERVER_LINHIR_TOKEN');
+
+            // Obtener la lista de roles del servidor
+            $rolesResponse = Http::withHeaders([
+                'Authorization' => 'Bot ' . $this->token,
+            ])->get("https://discord.com/api/v10/guilds/{$guildId}/roles");
+
+            // Verificar si la solicitud fue exitosa
+            if ($rolesResponse->successful()) {
+                $roles = $rolesResponse->json();
+
+                // Formatear la respuesta
+                $formattedRoles = array_map(function ($role) {
+                    return [
+                        'id' => $role['id'],
+                        'name' => $role['name'],
+                        'color' => $role['color'],
+                        'permissions' => $role['permissions'],
+                        'position' => $role['position'],
+                        'mentionable' => $role['mentionable'],
+                        'hoist' => $role['hoist'],
+                    ];
+                }, $roles);
+
+                return $formattedRoles;
+            } else {
+                // Manejar errores de la API
+                throw new Exception('Error en la solicitud a la API de Discord: ' . $rolesResponse->status());
+            }
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // Manejar errores de conexión
+            throw new Exception('Error de conexión: ' . $e->getMessage());
+        } catch (Exception $e) {
+            // Manejar cualquier otro error
+            throw new Exception('Error inesperado: ' . $e->getMessage());
         }
     }
 

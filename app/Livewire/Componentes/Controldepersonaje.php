@@ -59,7 +59,7 @@ class Controldepersonaje extends Component
                 $personajes[] = $this->consultarpersonaje($Id_albion);
             }
             $num = count($personajes);            
-        }   
+        }       
         
         return view('livewire.componentes.controldepersonaje',[
             'resultados' => $resultados,
