@@ -8,6 +8,7 @@ class Personaje extends Model
 {
     protected $fillable = [
         'user_id',
+        'discord_user_id',        
         'Name',
         'Id_albion',
         'GuildId',

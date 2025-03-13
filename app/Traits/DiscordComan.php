@@ -107,10 +107,14 @@ trait DiscordComan
                     // Verificar si el usuario está en la base de datos
                     $isRegistered = in_array($member['user']['id'], $discordUserIds);
 
+                    // Obtener el apodo (nick) del usuario en el servidor
+                    $nickname = $member['nick'] ?? $member['user']['username']; // Usar el nickname si existe, de lo contrario usar el username
+
                     $membersWithRoles[] = [
                         'user_id' => $member['user']['id'] ?? 'N/A',
                         'username' => $member['user']['username'] ?? 'N/A',
                         'discriminator' => $member['user']['discriminator'] ?? 'N/A',
+                        'nickname' => $nickname, // Agregar el apodo del usuario
                         'roles' => $userRoles,
                         'is_registered' => $isRegistered, // Indica si el usuario está registrado en la base de datos
                     ];

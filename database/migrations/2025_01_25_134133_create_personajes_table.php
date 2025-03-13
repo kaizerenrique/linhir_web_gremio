@@ -18,7 +18,7 @@ return new class extends Migration
                     ->constrained()  // <-- DEFINE LA RESTRICCION DE LLAVE FORANEA
                     ->onDelete('SET NULL')
                     ->onUpdate('cascade');
-            
+            $table->string('discord_user_id')->nullable(); // ID de Discord
             $table->string('Name');
             $table->string('Id_albion');
             $table->string('GuildId')->nullable();
