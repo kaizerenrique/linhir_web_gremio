@@ -45,6 +45,8 @@ class Listado extends Component
         }
 
         $listado = $this->getMembersWithRoles();
+
+        //dd($listado);
         
         return view('livewire.componentes.listado',[
             'informacion' => $informacion,
